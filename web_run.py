@@ -1,7 +1,7 @@
 import os
 import asyncio
 from aiohttp import web
-from Route import web_server   # because your file is Route.py
+from plugins.route import web_server
 
 async def main():
     app = await web_server()
