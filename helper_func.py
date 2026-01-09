@@ -15,7 +15,7 @@ import re
 import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
-from config import FORCE_SUB_CHANNEL, ADMINS
+from config import FORCE_SUB_CHANNEL, ADMINS, PROTECT_CONTENT, SUPER_PREMIUM_USERS
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
 
@@ -117,7 +117,14 @@ def get_readable_time(seconds: int) -> str:
 
 
 subscribed = filters.create(is_subscribed)
-
+def get_protect_flag(user_id: int) -> bool:
+    """
+    Normal user -> follow PROTECT_CONTENT (usually True)
+    Super premium -> always False (so they can forward)
+    """
+    if user_id in SUPER_PREMIUM_USERS:
+        return False
+    return PROTECT_CONTENT
 
 # MyselfNeon
 # Don't Remove Credit 🥺
