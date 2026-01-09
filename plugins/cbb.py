@@ -34,16 +34,16 @@ async def cb_handler(client: Bot, query: CallbackQuery):
                 f"<b>🚀 <i>Sᴇʀᴠᴇʀ :</i></b> "
                 f"<a href='https://heroku.com'><b><i>Hᴇʀᴏᴋᴜ</i></b></a>\n"
                 f"<b>📢 <i>Cʜᴀɴɴᴇʟ :</i></b> "
-                f"<a href='https://t.me/NeonFiles'><b><i>NᴇᴏɴFɪʟᴇs</i></b></a>\n"
+                f"<a href='https://t.me/Botskingdoms'><b><i>Botskingdoms</i></b></a>\n"
                 f"<b>🧑‍💻 <i>Dᴇᴠᴇʟᴏᴘᴇʀ :</i></b> "
-                f"<a href='tg://user?id={OWNER_ID}'><b><i>@MʏsᴇʟғNᴇᴏɴ</i></b></a>"
+                f"<a href='tg://user?id={OWNER_ID}'><b><i>RioShin</i></b></a>"
             ),
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton("🔊 Sᴜᴘᴘᴏʀᴛ", url="https://t.me/+o1s-8MppL2syYTI9"),
-                        InlineKeyboardButton("🆘 Sᴏᴜʀᴄᴇ Cᴏᴅᴇ", url="https://myselfneon.github.io/neon/")
+                        InlineKeyboardButton("🔊 Sᴜᴘᴘᴏʀᴛ", url="https://t.me/botskingdomsgroup"),
+                        InlineKeyboardButton("🆘 Sᴏᴜʀᴄᴇ Cᴏᴅᴇ", url="https://github.com/RioShin2025/FileStorebot")
                     ],
                     [
                         InlineKeyboardButton("🔒 Cʟᴏꜱᴇ", callback_data="close"),
@@ -56,13 +56,16 @@ async def cb_handler(client: Bot, query: CallbackQuery):
     elif data == "back":
         # Restore the same /start welcome screen on the same message
         reply_markup = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("💖 Uᴘᴅᴀᴛᴇs", url="https://t.me/NeonFiles"),
-                    InlineKeyboardButton("😎 Aʙᴏᴜᴛ", callback_data="about")
-                ]
-            ]
-        )
+    [
+        [
+            InlineKeyboardButton("💖 Uᴘᴅᴀᴛᴇs", url="https://t.me/Botskingdoms"),
+            InlineKeyboardButton("😎 Aʙᴏᴜᴛ", callback_data="about")
+        ],
+        [
+            InlineKeyboardButton("👨‍💻 Dᴇᴠᴇʟᴏᴘᴇʀ", url="https://t.me/RioShin")
+        ]
+    ]
+)
         await query.message.edit_text(
             text=START_MSG.format(
                 first=user.first_name,
