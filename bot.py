@@ -131,8 +131,11 @@ class Bot(Client):
             asyncio.create_task(keep_alive())
 
     async def stop(self, *args):
-        await super().stop()
+    try:
         await self.send_message(LOG_CHANNEL, "❌ Bot Stopped!")
+    except Exception:
+        pass
+    await super().stop()
 
 # 🔹 Log New Users
 @Bot.on_message(filters.command("start") & filters.private)
