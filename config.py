@@ -39,6 +39,7 @@ except ValueError:
     raise Exception("Your Admins list does not contain valid integers.")
 ADMINS.append(OWNER_ID)
 
+SUPER_PREMIUM_USERS = [8476571786, 987654321]
 # --- Bot Messages --- #
 CUSTOM_CAPTION = os.environ.get("CUSTOM_CAPTION", None)
 
