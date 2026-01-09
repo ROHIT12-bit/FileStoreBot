@@ -1,9 +1,7 @@
 import os
 import asyncio
 from aiohttp import web
-
-
-from Route import web_server
+from Route import web_server   # because your file is Route.py
 
 async def main():
     app = await web_server()
@@ -12,9 +10,6 @@ async def main():
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"✅ Web server running on port {port}")
-
-    # keep running forever
     while True:
         await asyncio.sleep(3600)
 
