@@ -19,7 +19,7 @@ API_ID = int(os.environ.get("API_ID", "20366634"))
 API_HASH = os.environ.get("API_HASH", "72095ec36984aa9ceb0dbaa9cec31559")
 
 OWNER_ID = int(os.environ.get("OWNER_ID", "8476571786"))
-DB_URL = os.environ.get("DB_URL", "mongodb+srv://RioShin:Developer@rioshindevolper.dywdndk.mongodb.net/?appName=RioShinDevolper")
+DB_URL = os.environ.get("DB_URL", "mongodb+srv://botskingdom1:gf3vWBaZi5hKwWd0@cluster0.7tu4jk0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 DB_NAME = os.environ.get("DB_NAME", "FileStoreRioShin")
 
 LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", "-1003383795299"))
