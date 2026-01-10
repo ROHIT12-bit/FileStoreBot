@@ -3,7 +3,7 @@ import requests
 import random
 import string
 
-from config import SHORT_URL, SHORT_API, ENABLE_SHORTNER
+from config import SHORT_URL, SHORT_API, SHORTENER_ENABLED 
 
 _cache = {}
 
@@ -21,7 +21,7 @@ def _shorten_sync(long_url: str) -> str:
     return long_url
 
 async def get_short_url(long_url: str) -> str:
-    if not ENABLE_SHORTNER:
+    if not SHORTENER_ENABLED:
         return long_url
 
     if long_url in _cache:
