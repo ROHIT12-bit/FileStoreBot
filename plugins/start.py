@@ -20,6 +20,7 @@ from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FILE_AUTO_DELETE, START_PIC
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
+from config import SHORTENER_ENABLED
 
 # ✅ Branding change (neonfiles -> Rioshin)
 from rioshin import script
@@ -41,6 +42,20 @@ async def start_command(client: Client, message: Message):
     if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
+# ================= SHORTENER (ONLY ONCE) =================
+if not base64_string.startswith("shorted_"):
+    original_link = f"https://t.me/{client.username}?start=shorted_{base64_string}"
+    short_link = await get_short_url(original_link)
+
+    await message.reply(
+        f"🔗 <b>Access your files:</b>\n{short_link}",
+        disable_web_page_preview=True
+    )
+    return
+
+# remove marker so normal flow continues
+base64_string = base64_string.replace("shorted_", "", 1)
+# ========================================================
         except:
             return
         string = await decode(base64_string)
