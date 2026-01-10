@@ -1,11 +1,11 @@
 # ---------------------------------------------------
 # File Name: Start.py
-# Author: NeonAnurag
-# GitHub: https://github.com/MyselfNeon/
-# Telegram: https://t.me/MyelfNeon
-# YouTube: https://youtube.com/@MyselfNeon
+# Author: BotsKingdoms x RioShin (Modified)
+# GitHub: https://github.com/BotsKingdoms/
+# Telegram: https://t.me/Botskingdoms
+# Developer: https://t.me/RioShin
 # Created: 2025-10-21
-# Last Modified: 2025-10-22
+# Last Modified: 2026-01-10
 # Version: Latest
 # License: MIT License
 # ---------------------------------------------------
@@ -18,14 +18,16 @@ from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FILE_AUTO_DELETE, START_PIC
-from helper_func import subscribed, encode, decode, get_messages, get_protect_flag
+from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
-from RioShin import script
+# ✅ Branding change (neonfiles -> Rioshin)
+from Rioshin import script
 
-RioShin = FILE_AUTO_DELETE
-Rioshin2025 = RioShin
-file_auto_delete = humanize.naturaldelta(myselfneon)
+# ✅ Branding variables (keep original logic)
+botskingdoms = FILE_AUTO_DELETE
+rioshin = botskingdoms
+file_auto_delete = humanize.naturaldelta(rioshin)
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
@@ -35,19 +37,14 @@ async def start_command(client: Client, message: Message):
             await add_user(id)
         except:
             pass
-
     text = message.text
     if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
         except:
             return
-
         string = await decode(base64_string)
         argument = string.split("-")
-
-        # ✅ decide protection ONCE per user
-        protect = get_protect_flag(message.from_user.id)
 
         if string.startswith("rget-"):
             if len(argument) == 3:
@@ -80,38 +77,39 @@ async def start_command(client: Client, message: Message):
                 return
             await temp_msg.delete()
 
-            neon_msgs = []
+            botskingdoms_msgs = []
 
             for msg in messages:
                 if bool(CUSTOM_CAPTION) & bool(msg.document):
-                    caption = CUSTOM_CAPTION.format(
-                        previouscaption="" if not msg.caption else msg.caption.html,
-                        filename=msg.document.file_name
-                    )
+                    caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
+                                                    filename=msg.document.file_name)
                 else:
                     caption = "" if not msg.caption else msg.caption.html
 
-                reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
+                if DISABLE_CHANNEL_BUTTON:
+                    reply_markup = msg.reply_markup
+                else:
+                    reply_markup = None
 
                 try:
-                    neon_msg = await msg.copy(
+                    botskingdoms_msg = await msg.copy(
                         chat_id=message.from_user.id,
                         caption=caption,
                         parse_mode=ParseMode.HTML,
                         reply_markup=reply_markup,
-                        protect_content=protect  # ✅ changed
+                        protect_content=True
                     )
-                    neon_msgs.append(neon_msg)
+                    botskingdoms_msgs.append(botskingdoms_msg)
                 except FloodWait as e:
                     await asyncio.sleep(e.x)
-                    neon_msg = await msg.copy(
+                    botskingdoms_msg = await msg.copy(
                         chat_id=message.from_user.id,
                         caption=caption,
                         parse_mode=ParseMode.HTML,
                         reply_markup=reply_markup,
-                        protect_content=protect  # ✅ changed
+                        protect_content=True
                     )
-                    neon_msgs.append(neon_msg)
+                    botskingdoms_msgs.append(botskingdoms_msg)
                 except:
                     pass
 
@@ -130,7 +128,7 @@ async def start_command(client: Client, message: Message):
                      f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
             )
 
-            asyncio.create_task(delete_files(neon_msgs, client, k))
+            asyncio.create_task(delete_files(botskingdoms_msgs, client, k))
             return
 
         elif len(argument) == 3:
@@ -154,7 +152,6 @@ async def start_command(client: Client, message: Message):
                 ids = [int(int(argument[1]) / abs(client.db_channel.id))]
             except:
                 return
-
         temp_msg = await message.reply("<b><i>Pʟᴇᴀsᴇ Wᴀɪᴛ...⚡</i></b>")
         try:
             messages = await get_messages(client, ids)
@@ -163,38 +160,39 @@ async def start_command(client: Client, message: Message):
             return
         await temp_msg.delete()
 
-        neon_msgs = []
+        botskingdoms_msgs = []
 
         for msg in messages:
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(
-                    previouscaption="" if not msg.caption else msg.caption.html,
-                    filename=msg.document.file_name
-                )
+                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
+                                                filename=msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
-            reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
+            if DISABLE_CHANNEL_BUTTON:
+                reply_markup = msg.reply_markup
+            else:
+                reply_markup = None
 
             try:
-                neon_msg = await msg.copy(
+                botskingdoms_msg = await msg.copy(
                     chat_id=message.from_user.id,
                     caption=caption,
                     parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup,
-                    protect_content=protect  # ✅ changed
+                    protect_content=PROTECT_CONTENT
                 )
-                neon_msgs.append(neon_msg)
+                botskingdoms_msgs.append(botskingdoms_msg)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                neon_msg = await msg.copy(
+                botskingdoms_msg = await msg.copy(
                     chat_id=message.from_user.id,
                     caption=caption,
                     parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup,
-                    protect_content=protect  # ✅ changed
+                    protect_content=PROTECT_CONTENT
                 )
-                neon_msgs.append(neon_msg)
+                botskingdoms_msgs.append(botskingdoms_msg)
             except:
                 pass
 
@@ -213,9 +211,8 @@ async def start_command(client: Client, message: Message):
                  f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
         )
 
-        asyncio.create_task(delete_files(neon_msgs, client, k))
+        asyncio.create_task(delete_files(botskingdoms_msgs, client, k))
         return
-
     else:
         reply_markup = InlineKeyboardMarkup(
             [
@@ -224,7 +221,7 @@ async def start_command(client: Client, message: Message):
                     InlineKeyboardButton("😎 Aʙᴏᴜᴛ", callback_data="about")
                 ],
                 [
-                    InlineKeyboardButton("👨‍💻 Dᴇᴠᴇʟᴇᴏᴘᴇʀ", url="https://t.me/RioShin")
+                    InlineKeyboardButton("👨‍💻 Dᴇᴠᴇʟᴏᴘᴇʀ", url="https://t.me/RioShin")
                 ]
             ]
         )
@@ -245,7 +242,9 @@ async def start_command(client: Client, message: Message):
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     buttons = [
-        [InlineKeyboardButton(text="Jᴏɪɴ Cʜᴀɴɴᴇʟ", url=client.invitelink)]
+        [
+            InlineKeyboardButton(text="Jᴏɪɴ Cʜᴀɴɴᴇʟ", url=client.invitelink)
+        ]
     ]
     try:
         buttons.append(
@@ -274,7 +273,8 @@ async def not_joined(client: Client, message: Message):
 
 @Bot.on_message(filters.command("users") & filters.private)
 async def get_users(client: Bot, message: Message):
-    msg = await message.reply_text("⏳ <b><i>Preparing User Data...</i></b>", quote=True)
+    msg = await message.reply_text(
+        "⏳ <b><i>Preparing User Data...</i></b>", quote=True)
 
     users = await full_userbase()
     total = len(users)
@@ -300,7 +300,7 @@ async def send_text(client: Bot, message: Message):
         deleted = 0
         unsuccessful = 0
 
-        pls_wait = await message.reply("<i><b>⏰ Bʀᴏᴀᴅᴄᴀsᴛɪɴɢ Yᴏᴜʀ Mᴇssᴀɢᴇs</b></i>", quote=True)
+        pls_wait = await message.reply("<i><b>⏰ Bʀᴏᴀᴅᴄᴀsᴛɪɴɢ Yᴏᴜʀ Mᴇssᴀɢᴇs</b></i>",quote=True)
         for chat_id in query:
             try:
                 await broadcast_msg.copy(chat_id)
@@ -325,16 +325,14 @@ async def send_text(client: Bot, message: Message):
 <b><i>👥 Tᴏᴛᴀʟ ᴜsᴇʀs</b> : {total}</i>
 <b><i>✅ Sᴜᴄᴄᴇssғᴜʟ</b> : {successful}</i>
 <b><i>🚫 Bʟᴏᴄᴋᴇᴅ Usᴇʀs</b> : {blocked}</i>
-<b><i>🚮 Dᴇʟᴇᴛᴇᴅ Aᴄᴄᴏᴜɴᴛs</b> : {deleted}</i>
+<b><i>🚮 Dᴇᴇʟᴇᴛᴇᴅ Aᴄᴄᴏᴜɴᴛs</b> : {deleted}</i>
 <b><i>☢️ Uɴsᴜᴄᴄᴇssғᴜʟ</b> : {unsuccessful}</i>"""
 
         return await pls_wait.edit(status)
 
     else:
         msg = await message.reply(
-            f"<b><i>Rᴇᴘʟʏ Tᴏ Aɴʏ Mᴇssᴀɢᴇ Aɴᴅ Usᴇ Tʜɪs Cᴏᴍᴍᴀɴᴅ Tᴏ Bʀᴏᴀᴅᴄᴀsᴛ 🔊.</i></b>",
-            quote=True
-        )
+            f"<b><i>Rᴇᴘʟʏ Tᴏ Aɴʏ Mᴇssᴀɢᴇ Aɴᴅ Usᴇ Tʜɪs Cᴏᴍᴍᴀɴᴅ Tᴏ Bʀᴏᴀᴅᴄᴀsᴛ 🔊.</i></b>",quote=True)
         await asyncio.sleep(8)
         await msg.delete()
 
@@ -348,6 +346,7 @@ async def delete_files(messages, client, k):
     await k.edit_text("<b><i>Yᴏᴜʀ Vɪᴅᴇᴏ / Fɪʟᴇ ɪs Sᴜᴄᴄᴇssғᴜʟʟʏ Dᴇʟᴇᴛᴇᴅ ✅</i></b>")
 
 
-# MyselfNeon
+# BotsKingdoms
 # Don't Remove Credit 🥺
-# Telegram Channel @NeonFiles
+# Developer: @RioShin
+# Telegram Channel @Botskingdoms
