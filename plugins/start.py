@@ -22,7 +22,7 @@ from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
 # ✅ Branding change (neonfiles -> Rioshin)
-from Rioshin import script
+from rioshin import script
 
 # ✅ Branding variables (keep original logic)
 botskingdoms = FILE_AUTO_DELETE
