@@ -31,7 +31,7 @@ PORT = os.environ.get("PORT", "8080")
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 SHORT_URL = "example.com"      # without https://
 SHORT_API = "YOUR_API_KEY"
-ENABLE_SHORTNER = True
+SHORTENER_ENABLED = True
 
 # --- Admins --- #
 ADMINS = [6848088376]
