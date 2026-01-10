@@ -25,8 +25,7 @@ from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
 # ✅ Shortener function (from your plugin)
-from plugins.shortner import get_short
-
+from plugins.shortner import get_short_url as get_short
 # ✅ SHORTENER_ENABLED may not exist in config, so keep safe
 try:
     from config import SHORTENER_ENABLED
