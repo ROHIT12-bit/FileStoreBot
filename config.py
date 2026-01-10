@@ -29,8 +29,8 @@ FORCE_SUB_CHANNEL = int(os.environ.get("FORCE_SUB_CHANNEL", "-1003383795299"))
 FILE_AUTO_DELETE = int(os.environ.get("FILE_AUTO_DELETE", "300"))  # auto delete in seconds
 PORT = os.environ.get("PORT", "8080")
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
-SHORT_URL = "example.com"      # without https://
-SHORT_API = "YOUR_API_KEY"
+SHORT_URL = "arolinks.com"      # without https://
+SHORT_API = "2ad041b1b4f8ce90b3ecadbbedbc904709bc8138"
 SHORTENER_ENABLED = True
 
 # --- Admins --- #
