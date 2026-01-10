@@ -10,45 +10,61 @@
 # License: MIT License
 # ---------------------------------------------------
 
-import os, asyncio, humanize
+import os
+import asyncio
+import humanize
+
 from pyrogram import Client, filters, __version__
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
-from plugins.shortner import get_short
 
 from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FILE_AUTO_DELETE, START_PIC
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
-from config import SHORTENER_ENABLED
 
+# ✅ Shortener function (from your plugin)
+from plugins.shortner import get_short
 
-from rioshin import script
+# ✅ SHORTENER_ENABLED may not exist in config, so keep safe
+try:
+    from config import SHORTENER_ENABLED
+except Exception:
+    SHORTENER_ENABLED = True  # change to False if you want default OFF
+
+# Branding credit import (if your repo uses it)
+from rioshin import script  # keep if your repo has rioshin.py
 
 # ✅ Branding variables (keep original logic)
 botskingdoms = FILE_AUTO_DELETE
 rioshin = botskingdoms
 file_auto_delete = humanize.naturaldelta(rioshin)
 
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
-    id = message.from_user.id
-    if not await present_user(id):
+    user_id = message.from_user.id
+    if not await present_user(user_id):
         try:
-            await add_user(id)
-        except:
+            await add_user(user_id)
+        except Exception:
             pass
 
     text = message.text
+
     if len(text) > 7:
+        # ✅ FIXED: try MUST have except
         try:
             base64_string = text.split(" ", 1)[1]
 
             # ================= SHORTENER (ONLY ONCE) =================
-            if not base64_string.startswith("shorted_"):
+            # Works like:
+            # /start ABCD...  -> sends short link to /start shorted_ABCD...
+            # /start shorted_ABCD... -> continues normal decoding flow
+            if SHORTENER_ENABLED and not base64_string.startswith("shorted_"):
                 original_link = f"https://t.me/{client.username}?start=shorted_{base64_string}"
-                short_link = get_short(original_link, client)
+                short_link = get_short(original_link, client)  # NO await
 
                 await message.reply(
                     f"🔗 <b>Access your files:</b>\n{short_link}",
@@ -57,9 +73,14 @@ async def start_command(client: Client, message: Message):
                 return
 
             # remove marker so normal flow continues
-            base64_string = base64_string.replace("shorted_", "", 1)
+            if base64_string.startswith("shorted_"):
+                base64_string = base64_string.replace("shorted_", "", 1)
             # ========================================================
 
+        except Exception:
+            return
+
+        # ✅ outside try (correct)
         string = await decode(base64_string)
         argument = string.split("-")
 
@@ -68,8 +89,9 @@ async def start_command(client: Client, message: Message):
                 try:
                     start = int(int(argument[1]) / abs(client.db_channel.id))
                     end = int(int(argument[2]) / abs(client.db_channel.id))
-                except:
+                except Exception:
                     return
+
                 if start <= end:
                     ids = range(start, end + 1)
                 else:
@@ -80,33 +102,34 @@ async def start_command(client: Client, message: Message):
                         i -= 1
                         if i < end:
                             break
+
             elif len(argument) == 2:
                 try:
                     ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-                except:
+                except Exception:
                     return
 
             temp_msg = await message.reply("<b><i>Pʟᴇᴀsᴇ Wᴀɪᴛ...⚡</i></b>")
             try:
                 messages = await get_messages(client, ids)
-            except:
+            except Exception:
                 await message.reply_text("<b><i>Sᴏᴍᴇᴛʜɪɴɢ Wᴇɴᴛ Wʀᴏɴɢ...❌</i></b>")
                 return
+
             await temp_msg.delete()
 
             botskingdoms_msgs = []
 
             for msg in messages:
-                if bool(CUSTOM_CAPTION) & bool(msg.document):
-                    caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
-                                                    filename=msg.document.file_name)
+                if bool(CUSTOM_CAPTION) & bool(getattr(msg, "document", None)):
+                    caption = CUSTOM_CAPTION.format(
+                        previouscaption="" if not msg.caption else msg.caption.html,
+                        filename=msg.document.file_name
+                    )
                 else:
                     caption = "" if not msg.caption else msg.caption.html
 
-                if DISABLE_CHANNEL_BUTTON:
-                    reply_markup = msg.reply_markup
-                else:
-                    reply_markup = None
+                reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
                 try:
                     botskingdoms_msg = await msg.copy(
@@ -127,7 +150,7 @@ async def start_command(client: Client, message: Message):
                         protect_content=True
                     )
                     botskingdoms_msgs.append(botskingdoms_msg)
-                except:
+                except Exception:
                     pass
 
             try:
@@ -135,25 +158,29 @@ async def start_command(client: Client, message: Message):
                     chat_id=message.from_user.id,
                     sticker="CAACAgUAAxkBAAI6eWjpNJUmsaD6O-PzuDOtGxZDg95lAAJFHAACwutJV4qF4DMw0uAwHgQ"
                 )
-            except:
+            except Exception:
                 pass
 
             k = await client.send_message(
                 chat_id=message.from_user.id,
-                text=f"<b>❗️ <u><i>Iᴍᴘᴏʀᴛᴀɴᴛ</i></u> ❗️</b>\n\n"
-                     f"<b><i>💢 Fɪʟᴇs Wɪʟʟ ʙᴇ Dᴇʟᴇᴛᴇᴅ ɪɴ {file_auto_delete} (Dᴜᴇ ᴛᴏ Cᴏᴘʏʀɪɢʜᴛ Issᴜᴇs).\n\n"
-                     f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
+                text=(
+                    f"<b>❗️ <u><i>Iᴍᴘᴏʀᴛᴀɴᴛ</i></u> ❗️</b>\n\n"
+                    f"<b><i>💢 Fɪʟᴇs Wɪʟʟ ʙᴇ Dᴇʟᴇᴛᴇᴅ ɪɴ {file_auto_delete} (Dᴜᴇ ᴛᴏ Cᴏᴘʏʀɪɢʜᴛ Issᴜᴇs).\n\n"
+                    f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
+                )
             )
 
             asyncio.create_task(delete_files(botskingdoms_msgs, client, k))
             return
 
+        # ---- Normal (non rget) flow ----
         elif len(argument) == 3:
             try:
                 start = int(int(argument[1]) / abs(client.db_channel.id))
                 end = int(int(argument[2]) / abs(client.db_channel.id))
-            except:
+            except Exception:
                 return
+
             if start <= end:
                 ids = range(start, end + 1)
             else:
@@ -164,32 +191,36 @@ async def start_command(client: Client, message: Message):
                     i -= 1
                     if i < end:
                         break
+
         elif len(argument) == 2:
             try:
                 ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-            except:
+            except Exception:
                 return
+        else:
+            return
+
         temp_msg = await message.reply("<b><i>Pʟᴇᴀsᴇ Wᴀɪᴛ...⚡</i></b>")
         try:
             messages = await get_messages(client, ids)
-        except:
+        except Exception:
             await message.reply_text("<b><i>Sᴏᴍᴇᴛʜɪɴɢ Wᴇɴᴛ Wʀᴏɴɢ...❌</i></b>")
             return
+
         await temp_msg.delete()
 
         botskingdoms_msgs = []
 
         for msg in messages:
-            if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
-                                                filename=msg.document.file_name)
+            if bool(CUSTOM_CAPTION) & bool(getattr(msg, "document", None)):
+                caption = CUSTOM_CAPTION.format(
+                    previouscaption="" if not msg.caption else msg.caption.html,
+                    filename=msg.document.file_name
+                )
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
-            if DISABLE_CHANNEL_BUTTON:
-                reply_markup = msg.reply_markup
-            else:
-                reply_markup = None
+            reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
             try:
                 botskingdoms_msg = await msg.copy(
@@ -210,7 +241,7 @@ async def start_command(client: Client, message: Message):
                     protect_content=PROTECT_CONTENT
                 )
                 botskingdoms_msgs.append(botskingdoms_msg)
-            except:
+            except Exception:
                 pass
 
         try:
@@ -218,59 +249,54 @@ async def start_command(client: Client, message: Message):
                 chat_id=message.from_user.id,
                 sticker="CAACAgUAAxkBAAI6eWjpNJUmsaD6O-PzuDOtGxZDg95lAAJFHAACwutJV4qF4DMw0uAwHgQ"
             )
-        except:
+        except Exception:
             pass
 
         k = await client.send_message(
             chat_id=message.from_user.id,
-            text=f"<b>❗️ <u><i>Iᴍᴘᴏʀᴛᴀɴᴛ</i></u> ❗️</b>\n\n"
-                 f"<b><i>💢 Fɪʟᴇs Wɪʟʟ ʙᴇ Dᴇʟᴇᴛᴇᴅ ɪɴ {file_auto_delete} (Dᴜᴇ ᴛᴏ Cᴏᴘʏʀɪɢʜᴛ Issᴜᴇs).\n\n"
-                 f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
+            text=(
+                f"<b>❗️ <u><i>Iᴍᴘᴏʀᴛᴀɴᴛ</i></u> ❗️</b>\n\n"
+                f"<b><i>💢 Fɪʟᴇs Wɪʟʟ ʙᴇ Dᴇʟᴇᴛᴇᴅ ɪɴ {file_auto_delete} (Dᴜᴇ ᴛᴏ Cᴏᴘʏʀɪɢʜᴛ Issᴜᴇs).\n\n"
+                f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
+            )
         )
 
         asyncio.create_task(delete_files(botskingdoms_msgs, client, k))
         return
-    else:
-        reply_markup = InlineKeyboardMarkup(
+
+    # ---- Normal /start (no args) ----
+    reply_markup = InlineKeyboardMarkup(
+        [
             [
-                [
-                    InlineKeyboardButton("💖 Uᴘᴅᴀᴛᴇs", url="https://t.me/Botskingdoms"),
-                    InlineKeyboardButton("😎 Aʙᴏᴜᴛ", callback_data="about")
-                ],
-                [
-                    InlineKeyboardButton("👨‍💻 Dᴇᴠᴇʟᴏᴘᴇʀ", url="https://t.me/RioShin")
-                ]
+                InlineKeyboardButton("💖 Uᴘᴅᴀᴛᴇs", url="https://t.me/Botskingdoms"),
+                InlineKeyboardButton("😎 Aʙᴏᴜᴛ", callback_data="about")
+            ],
+            [
+                InlineKeyboardButton("👨‍💻 Dᴇᴠᴇʟᴏᴘᴇʀ", url="https://t.me/RioShin")
             ]
-        )
-        await message.reply_photo(
-            photo=START_PIC,
-            caption=START_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=None if not message.from_user.username else '@' + message.from_user.username,
-                mention=message.from_user.mention,
-                id=message.from_user.id
-            ),
-            reply_markup=reply_markup,
-            quote=True
-        )
-        return
+        ]
+    )
+
+    await message.reply_photo(
+        photo=START_PIC,
+        caption=START_MSG.format(
+            first=message.from_user.first_name,
+            last=message.from_user.last_name,
+            username=None if not message.from_user.username else '@' + message.from_user.username,
+            mention=message.from_user.mention,
+            id=message.from_user.id
+        ),
+        reply_markup=reply_markup,
+        quote=True
+    )
+
 
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
-    buttons = [
-        [
-            InlineKeyboardButton(text="Jᴏɪɴ Cʜᴀɴɴᴇʟ", url=client.invitelink)
-        ]
-    ]
+    buttons = [[InlineKeyboardButton(text="Jᴏɪɴ Cʜᴀɴɴᴇʟ", url=client.invitelink)]]
     try:
         buttons.append(
-            [
-                InlineKeyboardButton(
-                    text='Tʀʏ Aɢᴀɪɴ',
-                    url=f"https://t.me/{client.username}?start={message.command[1]}"
-                )
-            ]
+            [InlineKeyboardButton(text='Tʀʏ Aɢᴀɪɴ', url=f"https://t.me/{client.username}?start={message.command[1]}")]
         )
     except IndexError:
         pass
@@ -288,10 +314,10 @@ async def not_joined(client: Client, message: Message):
         disable_web_page_preview=True
     )
 
+
 @Bot.on_message(filters.command("users") & filters.private)
 async def get_users(client: Bot, message: Message):
-    msg = await message.reply_text(
-        "⏳ <b><i>Preparing User Data...</i></b>", quote=True)
+    msg = await message.reply_text("⏳ <b><i>Preparing User Data...</i></b>", quote=True)
 
     users = await full_userbase()
     total = len(users)
@@ -306,18 +332,21 @@ async def get_users(client: Bot, message: Message):
 """
     )
 
+
 @Bot.on_message(filters.private & filters.command('broadcast') & filters.user(ADMINS))
 async def send_text(client: Bot, message: Message):
     if message.reply_to_message:
         query = await full_userbase()
         broadcast_msg = message.reply_to_message
+
         total = 0
         successful = 0
         blocked = 0
         deleted = 0
         unsuccessful = 0
 
-        pls_wait = await message.reply("<i><b>⏰ Bʀᴏᴀᴅᴄᴀsᴛɪɴɢ Yᴏᴜʀ Mᴇssᴀɢᴇs</b></i>",quote=True)
+        pls_wait = await message.reply("<i><b>⏰ Bʀᴏᴀᴅᴄᴀsᴛɪɴɢ Yᴏᴜʀ Mᴇssᴀɢᴇs</b></i>", quote=True)
+
         for chat_id in query:
             try:
                 await broadcast_msg.copy(chat_id)
@@ -332,9 +361,8 @@ async def send_text(client: Bot, message: Message):
             except InputUserDeactivated:
                 await del_user(chat_id)
                 deleted += 1
-            except:
+            except Exception:
                 unsuccessful += 1
-                pass
             total += 1
 
         status = f"""<b><u><i>🎯 Bʀᴏᴀᴅᴄᴀsᴛ Cᴏᴍᴘʟᴇᴛᴇᴅ Nɪᴄᴇʟʏ</i></u></b>
@@ -342,16 +370,18 @@ async def send_text(client: Bot, message: Message):
 <b><i>👥 Tᴏᴛᴀʟ ᴜsᴇʀs</b> : {total}</i>
 <b><i>✅ Sᴜᴄᴄᴇssғᴜʟ</b> : {successful}</i>
 <b><i>🚫 Bʟᴏᴄᴋᴇᴅ Usᴇʀs</b> : {blocked}</i>
-<b><i>🚮 Dᴇᴇʟᴇᴛᴇᴅ Aᴄᴄᴏᴜɴᴛs</b> : {deleted}</i>
+<b><i>🚮 Dᴇʟᴇᴛᴇᴅ Aᴄᴄᴏᴜɴᴛs</b> : {deleted}</i>
 <b><i>☢️ Uɴsᴜᴄᴄᴇssғᴜʟ</b> : {unsuccessful}</i>"""
 
         return await pls_wait.edit(status)
 
-    else:
-        msg = await message.reply(
-            f"<b><i>Rᴇᴘʟʏ Tᴏ Aɴʏ Mᴇssᴀɢᴇ Aɴᴅ Usᴇ Tʜɪs Cᴏᴍᴍᴀɴᴅ Tᴏ Bʀᴏᴀᴅᴄᴀsᴛ 🔊.</i></b>",quote=True)
-        await asyncio.sleep(8)
-        await msg.delete()
+    msg = await message.reply(
+        "<b><i>Rᴇᴘʟʏ Tᴏ Aɴʏ Mᴇssᴀɢᴇ Aɴᴅ Usᴇ Tʜɪs Cᴏᴍᴍᴀɴᴅ Tᴏ Bʀᴏᴀᴅᴄᴀsᴛ 🔊.</i></b>",
+        quote=True
+    )
+    await asyncio.sleep(8)
+    await msg.delete()
+
 
 async def delete_files(messages, client, k):
     await asyncio.sleep(FILE_AUTO_DELETE)
